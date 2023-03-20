@@ -48,7 +48,7 @@ class DirectMessenger:
             dm_obj.recipient = i['recipient']
             dm_obj.timestamp = i['timestamp']
             return_list.append(dm_obj)
-        return dm_obj
+        return return_list
  
     def retrieve_all(self) -> list:
     # must return a list of DirectMessage objects containing all messages
@@ -63,7 +63,7 @@ class DirectMessenger:
             dm_obj.recipient = i['recipient']
             dm_obj.timestamp = i['timestamp']
             return_list.append(dm_obj)
-        return dm_obj
+        return return_list
 
     def client_join(self):
         json1 = {"join": {"username": str(self.username), "password": str(self.password),
