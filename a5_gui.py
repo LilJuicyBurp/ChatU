@@ -1,3 +1,6 @@
+# Steven Deng
+# sdeng5@uci.edu
+# 47704456
 import tkinter as tk
 from tkinter import ttk, filedialog
 from typing import Text
@@ -9,9 +12,6 @@ class Body(tk.Frame):
         self.root = root
         self._contacts = [str]
         self._select_callback = recipient_selected_callback
-        # After all initialization is complete,
-        # call the _draw method to pack the widgets
-        # into the Body instance
         self._draw()
 
     def node_select(self, event):
@@ -28,7 +28,9 @@ class Body(tk.Frame):
     def _insert_contact_tree(self, id, contact: str):
         if len(contact) > 25:
             entry = contact[:24] + "..."
-        id = self.posts_tree.insert('', id, id, text=contact)
+        else:
+            entry = contact
+        id = self.posts_tree.insert('', id, id, text=entry)
 
     def insert_user_message(self, message:str):
         self.entry_editor.insert(1.0, message + '\n', 'entry-right')
@@ -44,41 +46,42 @@ class Body(tk.Frame):
         self.message_editor.insert(1.0, text)
 
     def _draw(self):
-        posts_frame = tk.Frame(master=self, width=250)
-        posts_frame.pack(fill=tk.BOTH, side=tk.LEFT)
+        posts_frame = tk.Frame(master=self, width=250, bg='light blue')
+        posts_frame.pack(fill=tk.BOTH, side=tk.RIGHT)
 
         self.posts_tree = ttk.Treeview(posts_frame)
+        self.posts_tree.heading('#0', text='Friend List')
         self.posts_tree.bind("<<TreeviewSelect>>", self.node_select)
         self.posts_tree.pack(fill=tk.BOTH, side=tk.TOP,
                              expand=True, padx=5, pady=5)
 
-        entry_frame = tk.Frame(master=self, bg="")
+        entry_frame = tk.Frame(master=self, bg='light blue')
         entry_frame.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
 
-        editor_frame = tk.Frame(master=entry_frame, bg="red")
+        editor_frame = tk.Frame(master=entry_frame, bg='light blue')
         editor_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
 
-        scroll_frame = tk.Frame(master=entry_frame, bg="blue", width=10)
-        scroll_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=False)
+        scroll_frame = tk.Frame(master=entry_frame, width=10, bg='light blue')
+        scroll_frame.pack(fill=tk.BOTH, side=tk.RIGHT, expand=False)
 
-        message_frame = tk.Frame(master=self, bg="yellow")
-        message_frame.pack(fill=tk.BOTH, side=tk.TOP, expand=False)
+        message_frame = tk.Frame(master=self, bg='light blue')
+        message_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
 
-        self.message_editor = tk.Text(message_frame, width=0, height=5)
+        self.message_editor = tk.Text(message_frame, width=0, height=5, bg='light gray')
         self.message_editor.pack(fill=tk.BOTH, side=tk.LEFT,
-                                 expand=True, padx=0, pady=0)
+                                 expand=True, padx=5, pady=5)
 
         self.entry_editor = tk.Text(editor_frame, width=0, height=5)
         self.entry_editor.tag_configure('entry-right', justify='right')
         self.entry_editor.tag_configure('entry-left', justify='left')
-        self.entry_editor.pack(fill=tk.BOTH, side=tk.LEFT,
-                               expand=True, padx=0, pady=0)
+        self.entry_editor.pack(fill=tk.BOTH, side=tk.RIGHT,
+                               expand=True, padx=5, pady=5)
 
         entry_editor_scrollbar = tk.Scrollbar(master=scroll_frame,
                                               command=self.entry_editor.yview)
         self.entry_editor['yscrollcommand'] = entry_editor_scrollbar.set
-        entry_editor_scrollbar.pack(fill=tk.Y, side=tk.LEFT,
-                                    expand=False, padx=0, pady=0)
+        entry_editor_scrollbar.pack(fill=tk.Y, side=tk.RIGHT,
+                                    expand=False, padx=0, pady=5)
 
 
 class Footer(tk.Frame):
@@ -155,6 +158,7 @@ class MainApp(tk.Frame):
         # into the root frame
         self._draw()
         self.body.insert_contact("studentexw23") # adding one example student.
+        self.body.insert_contact("studentexw24")
 
     def send_message(self):
         # You must implement this!
