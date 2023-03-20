@@ -54,6 +54,7 @@ class Profile:
         self.bio = ''             # OPTIONAL
         self._posts = []          # OPTIONAL
         self.friends = []
+        self.sent = []
         self.messages = []
 
     def add_post(self, post: Post) -> None:
@@ -96,6 +97,12 @@ class Profile:
                 self.bio = obj['bio']
                 for i in obj['friends']:
                     self.friends.append(i)
+                for i in obj['sent']:
+                    post = DirectMessage()
+                    post.message = i['message']
+                    post.recipient = i['from']
+                    post.timestamp = i['timestamp']
+                    self.sent.append(post)
                 for i in obj['messages']:
                     post = DirectMessage()
                     post.message = i['message']

@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog
 from typing import Text
 import pathlib
+import time
 import ds_messenger
 import Profile
 
@@ -16,7 +17,7 @@ class Body(tk.Frame):
         self._select_callback = recipient_selected_callback
         self._draw()
 
-    def node_select(self, event):
+    def node_select(self):
         index = int(self.posts_tree.selection()[0])
         entry = self._contacts[index]
         if self._select_callback is not None:
@@ -148,25 +149,49 @@ class MainApp(tk.Frame):
         self.password = None
         self.server = None
         self.recipient = None
+        self.profile = None
         self.direct_messenger = ds_messenger.DirectMessenger()
         self._draw()
 
     def send_message(self):
         # You must implement this!
+        direct_message = ds_messenger.DirectMessage()
         msg = self.message_editor.get('1.0', 'end').rstrip()
         recp = self.recipient
+        direct_message.message = msg
+        direct_message.recipient = recp
+        direct_message.timestamp = time.time()
+        self.profile.sent.append(direct_message)
         self.direct_messenger.send(msg, recp)
+        self.profile.save_profile(self._path)
 
 
     def add_contact(self):
-        # You must implement this!
-        # Hint: check how to use tk.simpledialog.askstring to retrieve
-        # the name of the new contact, and then use one of the body
-        # methods to add the contact to your contact list
-        pass
+        name = tk.simpledialog.askstring(title = 'New Contact',
+                                         prompt = 'Username of New Contact:')
+        self.profile.friends.append(name)
+        self.profile.save_profile(self._path)
+        self.body.insert_contact(name)
 
     def recipient_selected(self, recipient):
         self.recipient = recipient
+        msg_rcv = []
+        msg_sent = []
+        for i in self.profile.messages():
+            if i.recipient == self.recipient:
+                msg_rcv.append(i)
+        for i in self.profile.sent():
+            if i.recipient == self.recipient:
+                msg_sent.append(i)
+        msg_rcv.sort(key=lambda x: x.timestamp)
+        msg_sent.sort(key=lambda x: x.timestamp)
+        for i in msg_rcv:
+            for n in msg_sent:
+                if i.timestamp > n.timestamp:
+                    self.body.insert_user_message(n.message)
+                    msg_sent.remove(n)
+            self.body.insert_contact_message(i.message)
+
 
     def configure_server(self):
         ud = NewContactDialog(self.root, "Configure Account",
@@ -191,9 +216,10 @@ class MainApp(tk.Frame):
         ud = NewContactDialog(self.root, "Initiate Account",
                               '', '', '')
         path = pathlib.Path(filename + '.dsu')
+        self._path = str(path)
         path.touch()
-        profile = Profile.Profile(ud.server, ud.user, ud.pwd)
-        profile.save_profile(path)
+        self.profile = Profile.Profile(ud.server, ud.user, ud.pwd)
+        self.profile.save_profile(path)
         self.username = ud.user
         self.password = ud.pwd
         self.server = ud.server
@@ -203,15 +229,16 @@ class MainApp(tk.Frame):
     
     def open_file(self):
         filename = tk.filedialog.askopenfilename(filetypes=[('dsu', '*.dsu')])
-        profile = Profile.Profile()
-        profile.load_profile(filename)
-        self.username = profile.username
-        self.password = profile.password
-        self.server = profile.dsuserver
-        self.direct_messenger.dsuserver = profile.dsuserver
-        self.direct_messenger.password = profile.password
-        self.direct_messenger.username = profile.username
-        for i in profile.friends:
+        self._path = filename
+        self.profile = Profile.Profile()
+        self.profile.load_profile(filename)
+        self.username = self.profile.username
+        self.password = self.profile.password
+        self.server = self.profile.dsuserver
+        self.direct_messenger.dsuserver = self.profile.dsuserver
+        self.direct_messenger.password = self.profile.password
+        self.direct_messenger.username = self.profile.username
+        for i in self.profile.friends:
             self.body.insert_contact(i)
 
     def close(self):
