@@ -96,7 +96,7 @@ class Profile:
                 self.bio = obj['bio']
                 for i in obj['friends']:
                     self.friends.append(i)
-                for i in obj['messenges']:
+                for i in obj['messages']:
                     post = DirectMessage()
                     post.message = i['message']
                     post.recipient = i['from']

@@ -126,11 +126,6 @@ class NewContactDialog(tk.simpledialog.Dialog):
         self.username_entry.insert(tk.END, self.user)
         self.username_entry.pack()
 
-        # You need to implement also the region for the user to enter
-        # the Password. The code is similar to the Username you see above
-        # but you will want to add self.password_entry['show'] = '*'
-        # such that when the user types, the only thing that appears are
-        # * symbols.
         self.password_label = tk.Label(frame, width=30, text="Password")
         self.password_label.pack()
         self.password_entry = tk.Entry(frame, width=30)
@@ -153,17 +148,8 @@ class MainApp(tk.Frame):
         self.password = None
         self.server = None
         self.recipient = None
-        # You must implement this! You must configure and
-        # instantiate your DirectMessenger instance after this line.
-        #self.direct_messenger = ... continue!
         self.direct_messenger = ds_messenger.DirectMessenger()
-
-        # After all initialization is complete,
-        # call the _draw method to pack the widgets
-        # into the root frame
         self._draw()
-        self.body.insert_contact("studentexw23") # adding one example student.
-        self.body.insert_contact("studentexw24")
 
     def send_message(self):
         # You must implement this!
@@ -217,7 +203,7 @@ class MainApp(tk.Frame):
     
     def open_file(self):
         filename = tk.filedialog.askopenfilename(filetypes=[('dsu', '*.dsu')])
-        profile = profile = Profile.Profile()
+        profile = Profile.Profile()
         profile.load_profile(filename)
         self.username = profile.username
         self.password = profile.password
@@ -225,6 +211,8 @@ class MainApp(tk.Frame):
         self.direct_messenger.dsuserver = profile.dsuserver
         self.direct_messenger.password = profile.password
         self.direct_messenger.username = profile.username
+        for i in profile.friends:
+            self.body.insert_contact(i)
 
     def close(self):
         self.root.destroy()
