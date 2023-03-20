@@ -83,6 +83,26 @@ class Profile:
                 raise DsuFileError(msg, ex)
         else:
             raise DsuFileError("Invalid DSU file path or type")
+    
+    def get_sent(self):
+        return_list = []
+        for i in self.sent:
+            dm_obj = DirectMessage()
+            dm_obj.message = i['message']
+            dm_obj.recipient = i['recipient']
+            dm_obj.timestamp = i['timestamp']
+            return_list.append(dm_obj)
+        return return_list
+    
+    def get_messages(self):
+        return_list = []
+        for i in self.messages:
+            dm_obj = DirectMessage()
+            dm_obj.message = i['message']
+            dm_obj.recipient = i['recipient']
+            dm_obj.timestamp = i['timestamp']
+            return_list.append(dm_obj)
+        return return_list
 
     def load_profile(self, path: str) -> None:
         p = Path(path)
@@ -98,17 +118,9 @@ class Profile:
                 for i in obj['friends']:
                     self.friends.append(i)
                 for i in obj['sent']:
-                    post = DirectMessage()
-                    post.message = i['message']
-                    post.recipient = i['from']
-                    post.timestamp = i['timestamp']
-                    self.sent.append(post)
+                    self.sent.append(i)
                 for i in obj['messages']:
-                    post = DirectMessage()
-                    post.message = i['message']
-                    post.recipient = i['from']
-                    post.timestamp = i['timestamp']
-                    self.messages.append(post)
+                    self.messages.append(i)
                 for post_obj in obj['_posts']:
                     post = Post(post_obj['entry'], post_obj['timestamp'])
                     self._posts.append(post)

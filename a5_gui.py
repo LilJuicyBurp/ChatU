@@ -83,6 +83,7 @@ class Body(tk.Frame):
         self.entry_editor = tk.Text(editor_frame, width=0, height=5)
         self.entry_editor.tag_configure('entry-right', justify='right')
         self.entry_editor.tag_configure('entry-left', justify='left')
+        self.entry_editor.tag_configure('entry-mid', justify='center')
         self.entry_editor.pack(fill=tk.BOTH, side=tk.RIGHT,
                                expand=True, padx=5, pady=5)
 
@@ -161,16 +162,13 @@ class MainApp(tk.Frame):
 
     def send_message(self):
         # You must implement this!
-        direct_message = ds_messenger.DirectMessage()
         msg = self.body.message_editor.get('1.0', 'end').rstrip()
-        print(msg)
         recp = self.recipient
-        direct_message.message = msg
-        direct_message.recipient = recp
-        direct_message.timestamp = time.time()
+        direct_message = {'message': msg, 'recipient': recp,
+                          'timestamp': time.time()}
         self.profile.sent.append(direct_message)
         self.direct_messenger.send(msg, recp)
-        #self.profile.save_profile(self._path)
+        self.profile.save_profile(self._path)
 
 
     def add_contact(self):
@@ -181,23 +179,35 @@ class MainApp(tk.Frame):
         self.body.insert_contact(name)
 
     def recipient_selected(self, recipient):
+        self.body.entry_editor.delete(1.0, tk.END)
         self.recipient = recipient
         msg_rcv = []
         msg_sent = []
-        for i in self.profile.messages:
+        for i in self.profile.get_messages():
             if i.recipient == self.recipient:
                 msg_rcv.append(i)
-        for i in self.profile.sent:
+        for i in self.profile.get_sent():
             if i.recipient == self.recipient:
                 msg_sent.append(i)
-        msg_rcv.sort(key=lambda x: x.timestamp)
-        msg_sent.sort(key=lambda x: x.timestamp)
+        msg_rcv.sort(key=lambda x: x.timestamp, reverse=True)
+        msg_sent.sort(key=lambda x: x.timestamp, reverse=True)
+        msg_time = time.strftime('%Y-%m-%d %I%p', time.localtime(float(msg_rcv[0].timestamp)))
         for i in msg_rcv:
+            temp_time = time.strftime('%Y-%m-%d %I%p', time.localtime(float(i.timestamp)))
+            if temp_time != msg_time:
+                self.body.entry_editor.insert(1.0, msg_time + '\n', 'entry-mid')
+                msg_time = temp_time
             for n in msg_sent:
-                if i.timestamp > n.timestamp:
+                if i.timestamp < n.timestamp:
+                    temp_time = time.strftime('%Y-%m-%d %I%p', time.localtime(float(i.timestamp)))
                     self.body.insert_user_message(n.message)
                     msg_sent.remove(n)
+                    if temp_time != msg_time:
+                        msg_time = temp_time
+                        self.body.entry_editor.insert(1.0, msg_time + '\n', 'entry-mid')
             self.body.insert_contact_message(i.message)
+        self.body.entry_editor.insert(1.0, msg_time + '\n', 'entry-mid')
+        self.body.entry_editor.see('end')
 
 
     def configure_server(self):
