@@ -181,6 +181,7 @@ class MainApp(tk.Frame):
         self.body.insert_contact(name)
 
     def recipient_selected(self, recipient):
+        self.body.entry_editor.config(state='normal')
         self.body.entry_editor.delete(1.0, tk.END)
         self.recipient = recipient
         msg_list = []
@@ -233,7 +234,7 @@ class MainApp(tk.Frame):
                 self.profile.messages.append(direct_message)
             self.profile.save_profile(self._path)
             self.recipient_selected(self.recipient)
-        main.after(5000, app.check_new)
+        main.after(5000, self.check_new)
 
     def new_file(self):
         self.body.reset_ui()
@@ -266,6 +267,7 @@ class MainApp(tk.Frame):
         self.direct_messenger.username = self.profile.username
         for i in self.profile.friends:
             self.body.insert_contact(i)
+        self.check_new()
 
     def close(self):
         self.body.reset_ui()
