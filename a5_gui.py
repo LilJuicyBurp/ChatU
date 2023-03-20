@@ -166,9 +166,9 @@ class MainApp(tk.Frame):
         self.body.message_editor.delete(1.0, tk.END)
         recp = self.recipient
         direct_message = {'message': msg, 'recipient': recp,
-                          'timestamp': time.localtime()}
+                          'timestamp': time.time()}
         self.profile.sent.append(direct_message)
-        self.direct_messenger.send(msg, recp)
+        boo = self.direct_messenger.send(msg, recp)
         self.profile.save_profile(self._path)
         self.recipient_selected(self.recipient)
 
@@ -183,31 +183,26 @@ class MainApp(tk.Frame):
     def recipient_selected(self, recipient):
         self.body.entry_editor.delete(1.0, tk.END)
         self.recipient = recipient
-        msg_rcv = []
-        msg_sent = []
+        msg_list = []
         for i in self.profile.get_messages():
             if i.recipient == self.recipient:
-                msg_rcv.append(i)
+                msg = {'type': 'message', 'content': i}
+                msg_list.append(msg)
         for i in self.profile.get_sent():
             if i.recipient == self.recipient:
-                msg_sent.append(i)
-        msg_rcv.sort(key=lambda x: x.timestamp, reverse=True)
-        msg_sent.sort(key=lambda x: x.timestamp, reverse=True)
-        msg_time = time.strftime('%Y-%m-%d %I%p', time.localtime(float(msg_rcv[0].timestamp)))
-        for i in msg_rcv:
-            temp_time = time.strftime('%Y-%m-%d %I%p', time.localtime(float(i.timestamp)))
+                msg = {'type': 'sent', 'content': i}
+                msg_list.append(msg)
+        msg_list.sort(key = lambda x: float(x['content'].timestamp), reverse=True)
+        msg_time = time.strftime('%Y-%m-%d %I%p', time.localtime(float(msg_list[0]['content'].timestamp)))
+        for i in msg_list:
+            temp_time = time.strftime('%Y-%m-%d %I%p', time.localtime(float(i['content'].timestamp)))
             if temp_time != msg_time:
                 self.body.entry_editor.insert(1.0, msg_time + '\n', 'entry-mid')
                 msg_time = temp_time
-            for n in msg_sent:
-                if float(i.timestamp) < float(n.timestamp):
-                    temp_time = time.strftime('%Y-%m-%d %I%p', time.localtime(float(i.timestamp)))
-                    if temp_time != msg_time:
-                        msg_time = temp_time
-                        self.body.entry_editor.insert(1.0, msg_time + '\n', 'entry-mid')
-                    self.body.insert_user_message(n.message)
-                    msg_sent.remove(n)
-            self.body.insert_contact_message(i.message)
+            if i['type'] == 'sent':   
+                self.body.insert_user_message(i['content'].message)
+            else:
+                self.body.insert_contact_message(i['content'].message)
         self.body.entry_editor.insert(1.0, msg_time + '\n', 'entry-mid')
         self.body.entry_editor.config(state='disabled')
         self.body.entry_editor.see('end')
