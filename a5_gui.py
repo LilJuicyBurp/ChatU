@@ -4,7 +4,8 @@
 import tkinter as tk
 from tkinter import ttk, filedialog
 from typing import Text
-
+import ds_messenger
+import profile
 
 class Body(tk.Frame):
     def __init__(self, root, recipient_selected_callback=None):
@@ -154,6 +155,7 @@ class MainApp(tk.Frame):
         # You must implement this! You must configure and
         # instantiate your DirectMessenger instance after this line.
         #self.direct_messenger = ... continue!
+        self.direct_messenger = ds_messenger.DirectMessenger()
 
         # After all initialization is complete,
         # call the _draw method to pack the widgets
@@ -164,7 +166,10 @@ class MainApp(tk.Frame):
 
     def send_message(self):
         # You must implement this!
-        pass
+        msg = self.message_editor.get('1.0', 'end').rstrip()
+        recp = self.recipient
+        self.direct_messenger.send(msg, recp)
+
 
     def add_contact(self):
         # You must implement this!
@@ -185,6 +190,9 @@ class MainApp(tk.Frame):
         # You must implement this!
         # You must configure and instantiate your
         # DirectMessenger instance after this line.
+        self.direct_messenger.dsuserver = ud.server
+        self.direct_messenger.password = ud.pwd
+        self.direct_messenger.username = ud.user
 
     def publish(self, message:str):
         # You must implement this!
@@ -194,6 +202,23 @@ class MainApp(tk.Frame):
         # You must implement this!
         pass
 
+    def new_file(self):
+        filename = tk.filedialog.asksaveasfile(filetypes=[('dsu', '*.dsu')])
+        self._filename = filename.name
+        self.footer.set_status(self._filename) 
+        self.footer.enable()
+        # reset
+        #self.body.reset_ui()
+    
+    def open_file(self):
+        filename = tk.filedialog.askopenfile(filetypes=[('dsu', '*.dsu')])
+        self._filename = filename.name
+        self.footer.set_status(self._filename) 
+        self.footer.enable()
+
+    def close(self):
+        self.root.destroy()
+
     def _draw(self):
         # Build a menu and add it to the root frame.
         menu_bar = tk.Menu(self.root)
@@ -201,9 +226,9 @@ class MainApp(tk.Frame):
         menu_file = tk.Menu(menu_bar)
 
         menu_bar.add_cascade(menu=menu_file, label='File')
-        menu_file.add_command(label='New')
-        menu_file.add_command(label='Open...')
-        menu_file.add_command(label='Close')
+        menu_file.add_command(label='New', command=self.new_file)
+        menu_file.add_command(label='Open...', command=self.open_file)
+        menu_file.add_command(label='Close', command=self.close)
 
         settings_file = tk.Menu(menu_bar)
         menu_bar.add_cascade(menu=settings_file, label='Settings')
