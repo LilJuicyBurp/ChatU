@@ -96,10 +96,7 @@ class Footer(tk.Frame):
             self._send_callback()
 
     def _draw(self):
-        save_button = tk.Button(master=self, text="Send", width=20)
-        # You must implement this.
-        # Here you must configure the button to bind its click to
-        # the send_click() function.
+        save_button = tk.Button(master=self, text="Send", width=20, command=self.send_click)
         save_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
 
         self.footer_label = tk.Label(master=self, text="Ready.")
@@ -132,7 +129,12 @@ class NewContactDialog(tk.simpledialog.Dialog):
         # but you will want to add self.password_entry['show'] = '*'
         # such that when the user types, the only thing that appears are
         # * symbols.
-        #self.password...
+        self.password_label = tk.Label(frame, width=30, text="Password")
+        self.password_label.pack()
+        self.password_entry = tk.Entry(frame, width=30)
+        self.password_entry['show'] = '*'
+        self.password_entry.insert(tk.END, self.user)
+        self.password_entry.pack()
 
 
     def apply(self):
