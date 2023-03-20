@@ -185,14 +185,9 @@ class MainApp(tk.Frame):
     def configure_server(self):
         ud = NewContactDialog(self.root, "Configure Account",
                               self.username, self.password, self.server)
-        ud.body()
-        ud.apply()
         self.username = ud.user
         self.password = ud.pwd
         self.server = ud.server
-        # You must implement this!
-        # You must configure and instantiate your
-        # DirectMessenger instance after this line.
         self.direct_messenger.dsuserver = ud.server
         self.direct_messenger.password = ud.pwd
         self.direct_messenger.username = ud.user
@@ -222,7 +217,14 @@ class MainApp(tk.Frame):
     
     def open_file(self):
         filename = tk.filedialog.askopenfilename(filetypes=[('dsu', '*.dsu')])
-        print(filename)
+        profile = profile = Profile.Profile()
+        profile.load_profile(filename)
+        self.username = profile.username
+        self.password = profile.password
+        self.server = profile.dsuserver
+        self.direct_messenger.dsuserver = profile.dsuserver
+        self.direct_messenger.password = profile.password
+        self.direct_messenger.username = profile.username
 
     def close(self):
         self.root.destroy()
