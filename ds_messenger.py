@@ -74,8 +74,6 @@ class DirectMessenger:
             raise JoinError(json_returned.response["message"])
         elif json_returned.type == "ok":
             return json_returned.response['token']
-        else:
-            raise JoinError(json_returned.response["message"])
         
     def client_send(self, msg: json) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
