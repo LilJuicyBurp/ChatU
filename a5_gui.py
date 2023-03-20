@@ -17,7 +17,7 @@ class Body(tk.Frame):
         self._select_callback = recipient_selected_callback
         self._draw()
 
-    def node_select(self):
+    def node_select(self, event):
         index = int(self.posts_tree.selection()[0])
         entry = self._contacts[index]
         if self._select_callback is not None:
@@ -156,14 +156,14 @@ class MainApp(tk.Frame):
     def send_message(self):
         # You must implement this!
         direct_message = ds_messenger.DirectMessage()
-        msg = self.message_editor.get('1.0', 'end').rstrip()
+        msg = self.body.message_editor.get('1.0', 'end').rstrip()
         recp = self.recipient
         direct_message.message = msg
         direct_message.recipient = recp
         direct_message.timestamp = time.time()
         self.profile.sent.append(direct_message)
         self.direct_messenger.send(msg, recp)
-        self.profile.save_profile(self._path)
+        #self.profile.save_profile(self._path)
 
 
     def add_contact(self):
@@ -177,10 +177,10 @@ class MainApp(tk.Frame):
         self.recipient = recipient
         msg_rcv = []
         msg_sent = []
-        for i in self.profile.messages():
+        for i in self.profile.messages:
             if i.recipient == self.recipient:
                 msg_rcv.append(i)
-        for i in self.profile.sent():
+        for i in self.profile.sent:
             if i.recipient == self.recipient:
                 msg_sent.append(i)
         msg_rcv.sort(key=lambda x: x.timestamp)
