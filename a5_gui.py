@@ -81,9 +81,11 @@ class Body(tk.Frame):
                                  expand=True, padx=5, pady=5)
 
         self.entry_editor = tk.Text(editor_frame, width=0, height=5)
-        self.entry_editor.tag_configure('entry-right', justify='right')
-        self.entry_editor.tag_configure('entry-left', justify='left')
-        self.entry_editor.tag_configure('entry-mid', justify='center')
+        self.entry_editor.tag_configure('entry-right', justify='right', font='"Comic Sans MS" 10 bold')
+        self.entry_editor.tag_configure('entry-left', justify='left', font='"Comic Sans MS" 10 bold')
+        self.entry_editor.tag_configure('entry-right-time', justify='right', font='"Comic Sans MS" 8 normal')
+        self.entry_editor.tag_configure('entry-left-time', justify='left', font='"Comic Sans MS" 8 normal')
+        self.entry_editor.tag_configure('entry-mid', justify='center', font='"Comic Sans MS" 11 bold')
         self.entry_editor.pack(fill=tk.BOTH, side=tk.RIGHT,
                                expand=True, padx=5, pady=5)
 
@@ -193,16 +195,21 @@ class MainApp(tk.Frame):
             if i.recipient == self.recipient:
                 msg = {'type': 'sent', 'content': i}
                 msg_list.append(msg)
+        if len(msg_list) == 0:
+            return
         msg_list.sort(key = lambda x: float(x['content'].timestamp), reverse=True)
-        msg_time = time.strftime('%Y-%m-%d %I%p', time.localtime(float(msg_list[0]['content'].timestamp)))
+        msg_time = time.strftime('%Y-%m-%d %I %p', time.localtime(float(msg_list[0]['content'].timestamp)))
         for i in msg_list:
-            temp_time = time.strftime('%Y-%m-%d %I%p', time.localtime(float(i['content'].timestamp)))
+            temp_time = time.strftime('%Y-%m-%d %I %p', time.localtime(float(i['content'].timestamp)))
+            stamp_time = time.strftime('%Y/%m/%d %I:%M %p', time.localtime(float(i['content'].timestamp)))
             if temp_time != msg_time:
                 self.body.entry_editor.insert(1.0, msg_time + '\n', 'entry-mid')
                 msg_time = temp_time
-            if i['type'] == 'sent':   
+            if i['type'] == 'sent':
+                self.body.entry_editor.insert(1.0, f'({stamp_time})' + '\n', 'entry-right-time')
                 self.body.insert_user_message(i['content'].message)
             else:
+                self.body.entry_editor.insert(1.0, f'({stamp_time})' + '\n', 'entry-left-time')
                 self.body.insert_contact_message(i['content'].message)
         self.body.entry_editor.insert(1.0, msg_time + '\n', 'entry-mid')
         self.body.entry_editor.config(state='disabled')
@@ -256,6 +263,8 @@ class MainApp(tk.Frame):
     def open_file(self):
         self.body.reset_ui()
         filename = tk.filedialog.askopenfilename(filetypes=[('dsu', '*.dsu')])
+        if filename == '':
+            return
         self._path = filename
         self.profile = Profile.Profile()
         self.profile.load_profile(filename)
