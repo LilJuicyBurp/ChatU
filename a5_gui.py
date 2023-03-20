@@ -18,8 +18,8 @@ class Body(tk.Frame):
         self._draw()
 
     def node_select(self, event):
-        index = int(self.posts_tree.selection()[0])
-        entry = self._contacts[index]
+        index = self.posts_tree.focus()
+        entry = self.posts_tree.item(index)['text']
         if self._select_callback is not None:
             self._select_callback(entry)
 
@@ -163,12 +163,14 @@ class MainApp(tk.Frame):
     def send_message(self):
         # You must implement this!
         msg = self.body.message_editor.get('1.0', 'end').rstrip()
+        self.body.message_editor.delete(1.0, tk.END)
         recp = self.recipient
         direct_message = {'message': msg, 'recipient': recp,
-                          'timestamp': time.time()}
+                          'timestamp': time.localtime()}
         self.profile.sent.append(direct_message)
         self.direct_messenger.send(msg, recp)
         self.profile.save_profile(self._path)
+        self.recipient_selected(self.recipient)
 
 
     def add_contact(self):
@@ -198,15 +200,16 @@ class MainApp(tk.Frame):
                 self.body.entry_editor.insert(1.0, msg_time + '\n', 'entry-mid')
                 msg_time = temp_time
             for n in msg_sent:
-                if i.timestamp < n.timestamp:
+                if float(i.timestamp) < float(n.timestamp):
                     temp_time = time.strftime('%Y-%m-%d %I%p', time.localtime(float(i.timestamp)))
-                    self.body.insert_user_message(n.message)
-                    msg_sent.remove(n)
                     if temp_time != msg_time:
                         msg_time = temp_time
                         self.body.entry_editor.insert(1.0, msg_time + '\n', 'entry-mid')
+                    self.body.insert_user_message(n.message)
+                    msg_sent.remove(n)
             self.body.insert_contact_message(i.message)
         self.body.entry_editor.insert(1.0, msg_time + '\n', 'entry-mid')
+        self.body.entry_editor.config(state='disabled')
         self.body.entry_editor.see('end')
 
 
@@ -225,8 +228,17 @@ class MainApp(tk.Frame):
         pass
 
     def check_new(self):
-        # You must implement this!
-        pass
+        if self.direct_messenger.dsuserver is None:
+            return
+        new_msg = self.direct_messenger.retrieve_new()
+        if len(new_msg) > 0:
+            for i in new_msg:
+                direct_message = {'message': i.message, 'recipient': i.recipient,
+                            'timestamp': i.timestamp}
+                self.profile.messages.append(direct_message)
+            self.profile.save_profile(self._path)
+            self.recipient_selected(self.recipient)
+        main.after(5000, app.check_new)
 
     def new_file(self):
         self.body.reset_ui()
@@ -321,8 +333,7 @@ if __name__ == "__main__":
     # behavior of the window changes.
     main.update()
     main.minsize(main.winfo_width(), main.winfo_height())
-    id = main.after(2000, app.check_new)
-    print(id)
     # And finally, start up the event loop for the program (you can find
     # more on this in lectures of week 9 and 10).
+    main.after(5000, app.check_new)
     main.mainloop()
