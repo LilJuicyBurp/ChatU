@@ -47,6 +47,12 @@ class Body(tk.Frame):
     def set_text_entry(self, text:str):
         self.message_editor.delete(1.0, tk.END)
         self.message_editor.insert(1.0, text)
+    
+    def reset_ui(self):
+        self.message_editor.delete(1.0, tk.END)
+        self.entry_editor.delete(1.0, tk.END)
+        for item in self.posts_tree.get_children():
+            self.posts_tree.delete(item)
 
     def _draw(self):
         posts_frame = tk.Frame(master=self, width=250, bg='light blue')
@@ -157,6 +163,7 @@ class MainApp(tk.Frame):
         # You must implement this!
         direct_message = ds_messenger.DirectMessage()
         msg = self.body.message_editor.get('1.0', 'end').rstrip()
+        print(msg)
         recp = self.recipient
         direct_message.message = msg
         direct_message.recipient = recp
@@ -212,6 +219,7 @@ class MainApp(tk.Frame):
         pass
 
     def new_file(self):
+        self.body.reset_ui()
         filename = tk.filedialog.asksaveasfilename(filetypes=[('dsu', '*.dsu')])
         ud = NewContactDialog(self.root, "Initiate Account",
                               '', '', '')
@@ -228,6 +236,7 @@ class MainApp(tk.Frame):
         self.direct_messenger.username = ud.user
     
     def open_file(self):
+        self.body.reset_ui()
         filename = tk.filedialog.askopenfilename(filetypes=[('dsu', '*.dsu')])
         self._path = filename
         self.profile = Profile.Profile()
@@ -242,6 +251,7 @@ class MainApp(tk.Frame):
             self.body.insert_contact(i)
 
     def close(self):
+        self.body.reset_ui()
         self.root.destroy()
 
     def _draw(self):
