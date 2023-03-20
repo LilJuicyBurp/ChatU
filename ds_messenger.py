@@ -1,6 +1,11 @@
 # Steven Deng
 # sdeng5@uci.edu
 # 47704456
+import json
+import time
+import socket
+import ds_protocol
+
 class DirectMessage:
     def __init__(self):
         self.recipient = None
@@ -11,6 +16,9 @@ class DirectMessage:
 class DirectMessenger:
     def __init__(self, dsuserver=None, username=None, password=None):
         self.token = None
+        self.dsuserver = dsuserver
+        self.username = username
+        self.password = password
 		
     def send(self, message:str, recipient:str) -> bool:
     # must return true if message successfully sent, false if send failed.
@@ -23,3 +31,26 @@ class DirectMessenger:
     def retrieve_all(self) -> list:
     # must return a list of DirectMessage objects containing all messages
         pass
+
+    def client_join(self):
+        json1 = {"join": {"username": str(self.username), "password": str(self.password),
+                        "token": ""}}
+        json2 = json.dumps(json1)
+        json_returned = self.client_send(json2)
+        if json_returned.type == "error":
+            print(f'ERROR: {json_returned.response["message"]}')
+            return 'error'
+        elif json_returned.type == "ok":
+            return json_returned.response['token']
+        else:
+            print(f'ERROR: {json_returned.response["message"]}')
+            return 'error'
+        
+    def client_send(server_address: str, server_port: int, json_message) -> None:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+            client.connect((server_address, server_port))
+            data = json_message
+            client.sendall(bytes(data, encoding='utf-8'))
+            server_return = client.recv(4096)
+            server_return = server_return.decode("utf-8")
+            return ds_protocol.extract_json(server_return)

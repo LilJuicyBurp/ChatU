@@ -2,7 +2,6 @@
 # sdeng5@uci.edu
 # 47704456
 import json
-import socket
 from collections import namedtuple
 
 DataTuple = namedtuple('DataTuple', ['response', 'type'])
