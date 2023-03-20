@@ -44,8 +44,8 @@ class DirectMessenger:
         return_list = []
         for i in json_returned.response['messages']:
             dm_obj = DirectMessage()
-            dm_obj.message = i['entry']
-            dm_obj.recipient = i['recipient']
+            dm_obj.message = i['message']
+            dm_obj.recipient = i['from']
             dm_obj.timestamp = i['timestamp']
             return_list.append(dm_obj)
         return return_list
@@ -59,8 +59,8 @@ class DirectMessenger:
         return_list = []
         for i in json_returned.response['messages']:
             dm_obj = DirectMessage()
-            dm_obj.message = i['entry']
-            dm_obj.recipient = i['recipient']
+            dm_obj.message = i['message']
+            dm_obj.recipient = i['from']
             dm_obj.timestamp = i['timestamp']
             return_list.append(dm_obj)
         return return_list
@@ -77,11 +77,10 @@ class DirectMessenger:
         else:
             raise JoinError(json_returned.response["message"])
         
-    def client_send(server_address: str, server_port: int, json_message) -> None:
+    def client_send(self, msg: json) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-            client.connect((server_address, server_port))
-            data = json_message
-            client.sendall(bytes(data, encoding='utf-8'))
+            client.connect((self.dsuserver, 3021))
+            client.sendall(bytes(msg, encoding='utf-8'))
             server_return = client.recv(4096)
             server_return = server_return.decode("utf-8")
             return ds_protocol.directmessage(server_return)
