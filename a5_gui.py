@@ -4,8 +4,9 @@
 import tkinter as tk
 from tkinter import ttk, filedialog
 from typing import Text
+import pathlib
 import ds_messenger
-import profile
+import Profile
 
 class Body(tk.Frame):
     def __init__(self, root, recipient_selected_callback=None):
@@ -184,6 +185,8 @@ class MainApp(tk.Frame):
     def configure_server(self):
         ud = NewContactDialog(self.root, "Configure Account",
                               self.username, self.password, self.server)
+        ud.body()
+        ud.apply()
         self.username = ud.user
         self.password = ud.pwd
         self.server = ud.server
@@ -203,18 +206,23 @@ class MainApp(tk.Frame):
         pass
 
     def new_file(self):
-        filename = tk.filedialog.asksaveasfile(filetypes=[('dsu', '*.dsu')])
-        self._filename = filename.name
-        self.footer.set_status(self._filename) 
-        self.footer.enable()
-        # reset
-        #self.body.reset_ui()
+        filename = tk.filedialog.asksaveasfilename(filetypes=[('dsu', '*.dsu')])
+        ud = NewContactDialog(self.root, "Initiate Account",
+                              '', '', '')
+        path = pathlib.Path(filename + '.dsu')
+        path.touch()
+        profile = Profile.Profile(ud.server, ud.user, ud.pwd)
+        profile.save_profile(path)
+        self.username = ud.user
+        self.password = ud.pwd
+        self.server = ud.server
+        self.direct_messenger.dsuserver = ud.server
+        self.direct_messenger.password = ud.pwd
+        self.direct_messenger.username = ud.user
     
     def open_file(self):
-        filename = tk.filedialog.askopenfile(filetypes=[('dsu', '*.dsu')])
-        self._filename = filename.name
-        self.footer.set_status(self._filename) 
-        self.footer.enable()
+        filename = tk.filedialog.askopenfilename(filetypes=[('dsu', '*.dsu')])
+        print(filename)
 
     def close(self):
         self.root.destroy()
