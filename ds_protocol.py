@@ -13,5 +13,8 @@ def directmessage(json_msg: str) -> DataTuple:
         type = json_obj['response']['type']
     except json.JSONDecodeError:
         print("Json cannot be decoded.")
-        return DataTuple({'message': 'returned info can\' be read'}, 'error')
+        return DataTuple({'message': 'returned info can\'t be read'}, 'error')
+    except TypeError:
+        print("Json cannot be decoded.")
+        return DataTuple({'message': 'returned info can\'t be read'}, 'error')
     return DataTuple(msg, type)

@@ -26,3 +26,15 @@ def test_case_2():
     test = ds_protocol.directmessage(json.dumps(msg))
     assert test.type == 'ok'
     assert test.response == {"type": "ok", "message": "Direct message sent"}
+
+def test_case_3():
+    """Tests json.JSONDecodeError."""
+    msg = '"response": {"type": "ok", "message": "Direct message sent"}'
+    test = ds_protocol.directmessage(msg)
+    assert test.type == 'error'
+    
+def test_case_4():
+    """Tests json.JSONDecodeError."""
+    msg = ["response", {"type": "ok", "message": "Direct message sent"}]
+    test = ds_protocol.directmessage(json.dumps(msg))
+    assert test.type == 'error'
