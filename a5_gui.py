@@ -2,7 +2,7 @@
 # sdeng5@uci.edu
 # 47704456
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk, messagebox
 from typing import Text
 import pathlib
 import time
@@ -111,18 +111,25 @@ class Footer(tk.Frame):
         save_button = tk.Button(master=self, text="Send", width=20, command=self.send_click)
         save_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
 
-        self.footer_label = tk.Label(master=self, text="Ready.")
+        self.footer_label = tk.Label(master=self, text="Offline")
         self.footer_label.pack(fill=tk.BOTH, side=tk.LEFT, padx=5)
 
 
 class NewContactDialog(tk.simpledialog.Dialog):
-    def __init__(self, root, title=None, user=None, pwd=None):
+    def __init__(self, root, title=None, user=None, pwd=None, srv=None):
         self.root = root
         self.user = user
         self.pwd = pwd
+        self.server = srv
         super().__init__(root, title)
 
     def body(self, frame):
+        if self.server is not None:
+            self.srv_label = tk.Label(frame, width=30, text="DSU Server:")
+            self.srv_label.pack()
+            self.srv_entry = tk.Entry(frame, width=30)
+            self.srv_entry.insert(tk.END, self.server)
+            self.srv_entry.pack()
         self.username_label = tk.Label(frame, width=30, text="Username:")
         self.username_label.pack()
         self.username_entry = tk.Entry(frame, width=30)
@@ -138,7 +145,8 @@ class NewContactDialog(tk.simpledialog.Dialog):
     def apply(self):
         self.user = self.username_entry.get()
         self.pwd = self.pwd_entry.get()
-
+        if self.server is not None:
+            self.server = self.srv_entry.get()
 
 class MainApp(tk.Frame):
     def __init__(self, root):
@@ -226,7 +234,7 @@ class MainApp(tk.Frame):
 
     def configure_server(self):
         ud = NewContactDialog(self.root, "Configure Account", self.username,
-                              self.password)
+                              self.password, self.server)
         self.username = ud.user
         self.password = ud.pwd
         self.direct_messenger.password = ud.pwd
@@ -249,22 +257,44 @@ class MainApp(tk.Frame):
             self.recipient_selected(self.recipient)
         main.after(5000, self.check_new)
 
+    def info_check(self, user):
+        try:
+            if user.usr == '' or user.pwd == '' or user.srv == '':
+                return False
+            if user.usr is None or user.pwd is None or user.srv is None:
+                return False
+            info_list = [user.usr, user.pwd, user.srv]
+            for i in info_list:
+                num = 0
+                for n in i:
+                    if n != ' ':
+                        num += 1
+                if num == 0:
+                    return False
+            return True
+        except:
+            return False
+
     def new_file(self):
         self.body.reset_ui()
         filename = tk.filedialog.asksaveasfilename(filetypes=[('dsu', '*.dsu')])
         ud = NewContactDialog(self.root, "Initiate Account",
                               '', '', '')
-        path = pathlib.Path(filename + '.dsu')
-        self._path = str(path)
-        path.touch()
+        if not self.info_check(ud):
+            messagebox.showerror('Uh-oh!', 'File')
         self.profile = Profile.Profile(ud.server, ud.user, ud.pwd)
-        self.profile.save_profile(path)
         self.username = ud.user
         self.password = ud.pwd
         self.server = ud.server
         self.direct_messenger.dsuserver = ud.server
         self.direct_messenger.password = ud.pwd
         self.direct_messenger.username = ud.user
+        path = pathlib.Path(filename + '.dsu')
+        self._path = str(path)
+        path.touch()
+        msg = f"Online @{self.server} | {self.username}"
+        self.footer.footer_label.configure(text=msg)
+        self.profile.save_profile(path)
     
     def open_file(self):
         self.body.reset_ui()
@@ -283,6 +313,8 @@ class MainApp(tk.Frame):
         for i in self.profile.friends:
             self.body.insert_contact(i)
         self.check_new()
+        msg = f"Online @{self.server} | {self.username}"
+        self.footer.footer_label.configure(text=msg)
 
     def close(self):
         self.body.reset_ui()
@@ -295,15 +327,15 @@ class MainApp(tk.Frame):
         menu_file = tk.Menu(menu_bar)
 
         menu_bar.add_cascade(menu=menu_file, label='File')
-        menu_file.add_command(label='New', command=self.new_file)
-        menu_file.add_command(label='Open...', command=self.open_file)
-        menu_file.add_command(label='Close', command=self.close)
+        menu_file.add_command(label='New User', command=self.new_file)
+        menu_file.add_command(label='Registered User', command=self.open_file)
+        menu_file.add_command(label='Logout', command=self.close)
 
         settings_file = tk.Menu(menu_bar)
         menu_bar.add_cascade(menu=settings_file, label='Settings')
         settings_file.add_command(label='Add Contact',
                                   command=self.add_contact)
-        settings_file.add_command(label='Configure DS Server',
+        settings_file.add_command(label='Configure Profile',
                                   command=self.configure_server)
 
         # The Body and Footer classes must be initialized and
