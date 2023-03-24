@@ -79,6 +79,6 @@ class DirectMessenger:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect((self.dsuserver, 3021))
             client.sendall(bytes(msg, encoding='utf-8'))
-            server_return = client.recv(4096)
+            server_return = client.recv(1000000)
             server_return = server_return.decode("utf-8")
             return ds_protocol.directmessage(server_return)

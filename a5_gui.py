@@ -116,38 +116,28 @@ class Footer(tk.Frame):
 
 
 class NewContactDialog(tk.simpledialog.Dialog):
-    def __init__(self, root, title=None, user=None, pwd=None, server=None):
+    def __init__(self, root, title=None, user=None, pwd=None):
         self.root = root
-        self.server = server
         self.user = user
         self.pwd = pwd
         super().__init__(root, title)
 
     def body(self, frame):
-        self.server_label = tk.Label(frame, width=30, text="DS Server Address")
-        self.server_label.pack()
-        self.server_entry = tk.Entry(frame, width=30)
-        self.server_entry.insert(tk.END, self.server)
-        self.server_entry.pack()
-
-        self.username_label = tk.Label(frame, width=30, text="Username")
+        self.username_label = tk.Label(frame, width=30, text="Username:")
         self.username_label.pack()
         self.username_entry = tk.Entry(frame, width=30)
         self.username_entry.insert(tk.END, self.user)
         self.username_entry.pack()
-
-        self.password_label = tk.Label(frame, width=30, text="Password")
-        self.password_label.pack()
-        self.password_entry = tk.Entry(frame, width=30)
-        self.password_entry['show'] = '*'
-        self.password_entry.insert(tk.END, self.user)
-        self.password_entry.pack()
-
+        self.pwd_label = tk.Label(frame, width=30, text="Password:")
+        self.pwd_label.pack()
+        self.pwd_entry = tk.Entry(frame, width=30)
+        self.pwd_entry['show'] = '*'
+        self.pwd_entry.insert(tk.END, self.pwd)
+        self.pwd_entry.pack()
 
     def apply(self):
         self.user = self.username_entry.get()
-        self.pwd = self.password_entry.get()
-        self.server = self.server_entry.get()
+        self.pwd = self.pwd_entry.get()
 
 
 class MainApp(tk.Frame):
@@ -157,6 +147,7 @@ class MainApp(tk.Frame):
         self.username = None
         self.password = None
         self.server = None
+        self.current_msgs = []
         self.recipient = None
         self.profile = None
         self.direct_messenger = ds_messenger.DirectMessenger()
@@ -182,10 +173,27 @@ class MainApp(tk.Frame):
         self.profile.save_profile(self._path)
         self.body.insert_contact(name)
 
+    def save_entry(self):
+        for i in self.current_msgs:
+            if i.recipient == self.recipient:
+                i.message = self.body.message_editor.get('1.0', 'end').rstrip()
+                self.body.message_editor.delete(1.0, tk.END)
+                return
+        unfinished_msg = ds_messenger.DirectMessage()
+        unfinished_msg.message = self.body.message_editor.get('1.0', 'end').rstrip()
+        unfinished_msg.recipient = self.recipient
+        self.current_msgs.append(unfinished_msg)
+        self.body.message_editor.delete(1.0, tk.END)
+        return
+
     def recipient_selected(self, recipient):
         self.body.entry_editor.config(state='normal')
         self.body.entry_editor.delete(1.0, tk.END)
+        self.save_entry()
         self.recipient = recipient
+        for i in self.current_msgs:
+            if i.recipient == self.recipient:
+                self.body.set_text_entry(i.message)
         msg_list = []
         for i in self.profile.get_messages():
             if i.recipient == self.recipient:
@@ -217,18 +225,16 @@ class MainApp(tk.Frame):
 
 
     def configure_server(self):
-        ud = NewContactDialog(self.root, "Configure Account",
-                              self.username, self.password, self.server)
+        ud = NewContactDialog(self.root, "Configure Account", self.username,
+                              self.password)
         self.username = ud.user
         self.password = ud.pwd
-        self.server = ud.server
-        self.direct_messenger.dsuserver = ud.server
         self.direct_messenger.password = ud.pwd
         self.direct_messenger.username = ud.user
+        self.profile.password = ud.pwd
+        self.profile.username = ud.user
+        self.profile.save_profile(self._path)
 
-    def publish(self, message:str):
-        # You must implement this!
-        pass
 
     def check_new(self):
         if self.direct_messenger.dsuserver is None:
