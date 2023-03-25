@@ -444,7 +444,7 @@ class MainApp(tk.Frame):
         menu_bar.add_cascade(menu=menu_file, label='File')
         menu_file.add_command(label='New User', command=self.new_file)
         menu_file.add_command(label='Open Existing User',
-                              ommand=self.open_file)
+                              command=self.open_file)
         menu_file.add_command(label='Close Program', command=self.close)
         self.body = Body(self.root,
                          recipient_selected_callback=self.recipient_selected)
