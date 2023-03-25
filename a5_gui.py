@@ -2,7 +2,7 @@
 # sdeng5@uci.edu
 # 47704456
 import tkinter as tk
-from tkinter import ttk, simpledialog, messagebox
+from tkinter import ttk, filedialog, messagebox
 from typing import Text
 import pathlib
 import time
@@ -118,8 +118,8 @@ class Footer(tk.Frame):
 class NewContactDialog(tk.simpledialog.Dialog):
     def __init__(self, root, title=None, user=None, pwd=None, srv=None):
         self.root = root
-        self.user = user
-        self.pwd = pwd
+        self.username = user
+        self.password = pwd
         self.server = srv
         super().__init__(root, title)
 
@@ -133,18 +133,18 @@ class NewContactDialog(tk.simpledialog.Dialog):
         self.username_label = tk.Label(frame, width=30, text="Username:")
         self.username_label.pack()
         self.username_entry = tk.Entry(frame, width=30)
-        self.username_entry.insert(tk.END, self.user)
+        self.username_entry.insert(tk.END, self.username)
         self.username_entry.pack()
         self.pwd_label = tk.Label(frame, width=30, text="Password:")
         self.pwd_label.pack()
         self.pwd_entry = tk.Entry(frame, width=30)
         self.pwd_entry['show'] = '*'
-        self.pwd_entry.insert(tk.END, self.pwd)
+        self.pwd_entry.insert(tk.END, self.password)
         self.pwd_entry.pack()
 
     def apply(self):
-        self.user = self.username_entry.get()
-        self.pwd = self.pwd_entry.get()
+        self.username = self.username_entry.get()
+        self.password = self.pwd_entry.get()
         if self.server is not None:
             self.server = self.srv_entry.get()
 
@@ -158,6 +158,7 @@ class MainApp(tk.Frame):
         self.current_msgs = []
         self.recipient = None
         self.profile = None
+        self.status = False
         self.direct_messenger = ds_messenger.DirectMessenger()
         self._draw()
 
@@ -172,7 +173,6 @@ class MainApp(tk.Frame):
         boo = self.direct_messenger.send(msg, recp)
         self.profile.save_profile(self._path)
         self.recipient_selected(self.recipient)
-
 
     def add_contact(self):
         name = tk.simpledialog.askstring(title = 'New Contact',
@@ -231,7 +231,6 @@ class MainApp(tk.Frame):
         self.body.entry_editor.config(state='disabled')
         self.body.entry_editor.see('end')
 
-
     def configure_server(self):
         ud = NewContactDialog(self.root, "Configure Account", self.username,
                               self.password, self.server)
@@ -242,7 +241,6 @@ class MainApp(tk.Frame):
         self.profile.password = ud.pwd
         self.profile.username = ud.user
         self.profile.save_profile(self._path)
-
 
     def check_new(self):
         if self.direct_messenger.dsuserver is None:
@@ -259,11 +257,11 @@ class MainApp(tk.Frame):
 
     def info_check(self, user):
         try:
-            if user.usr == '' or user.pwd == '' or user.srv == '':
+            if user.username == '' or user.password == '' or user.server == '':
                 return False
-            if user.usr is None or user.pwd is None or user.srv is None:
+            if user.username is None or user.password is None or user.server is None:
                 return False
-            info_list = [user.usr, user.pwd, user.srv]
+            info_list = [user.username, user.password, user.server]
             for i in info_list:
                 num = 0
                 for n in i:
@@ -276,19 +274,35 @@ class MainApp(tk.Frame):
             return False
 
     def new_file(self):
-        self.body.reset_ui()
+        if self.status == True:
+            self.body.reset_ui()
         filename = tk.filedialog.asksaveasfilename(filetypes=[('dsu', '*.dsu')])
+        if filename == '':
+            messagebox.showerror('No File selected!',
+                                 'User Not Created')
+            return
         ud = NewContactDialog(self.root, "Initiate Account",
                               '', '', '')
         if not self.info_check(ud):
-            messagebox.showerror('Uh-oh!', 'File')
-        self.profile = Profile.Profile(ud.server, ud.user, ud.pwd)
-        self.username = ud.user
-        self.password = ud.pwd
+            messagebox.showerror('Missing Creation Info!',
+                                 'User Not Created')
+            return
+        elif self.status == False:
+            self.starter_frame.destroy()
+            self.starter_frame1.destroy()
+            self.welcome_msg.destroy()
+            self.welcome_msg1.destroy()
+            self.new_button.destroy()
+            self.old_button.destroy()
+            self.status = True
+            self.main_program()
+        self.profile = Profile.Profile(ud.server, ud.username, ud.password)
+        self.username = ud.username
+        self.password = ud.password
         self.server = ud.server
         self.direct_messenger.dsuserver = ud.server
-        self.direct_messenger.password = ud.pwd
-        self.direct_messenger.username = ud.user
+        self.direct_messenger.password = ud.password
+        self.direct_messenger.username = ud.username
         path = pathlib.Path(filename + '.dsu')
         self._path = str(path)
         path.touch()
@@ -297,10 +311,20 @@ class MainApp(tk.Frame):
         self.profile.save_profile(path)
     
     def open_file(self):
-        self.body.reset_ui()
+        if self.status == True:
+            self.body.reset_ui()
         filename = tk.filedialog.askopenfilename(filetypes=[('dsu', '*.dsu')])
         if filename == '':
-            return
+            messagebox.showerror('Uh-oh!', 'File')
+        elif self.status == False:
+            self.starter_frame.destroy()
+            self.starter_frame1.destroy()
+            self.welcome_msg.destroy()
+            self.welcome_msg1.destroy()
+            self.new_button.destroy()
+            self.old_button.destroy()
+            self.status = True
+            self.main_program()
         self._path = filename
         self.profile = Profile.Profile()
         self.profile.load_profile(filename)
@@ -315,56 +339,66 @@ class MainApp(tk.Frame):
         self.check_new()
         msg = f"Online @{self.server} | {self.username}"
         self.footer.footer_label.configure(text=msg)
+        if self.status == False:
+            self.starter_frame.destroy()
+            self.starter_frame1.destroy()
+            self.welcome_msg.destroy()
+            self.welcome_msg1.destroy()
+            self.new_button.destroy()
+            self.old_button.destroy()
+        self.status = True
 
     def close(self):
         self.body.reset_ui()
         self.root.destroy()
 
-    def start_menu(self):
-        starter_frame = tk.Frame(master=self.root,width=360,
-                                 height=240, bg='light blue')
-        starter_frame.place(anchor='center')
-        msg = 'Welcome To DSP Messenger'
-        msg_by = 'Created by: Steven Deng'
-        welcome_msg = tk.Text(starter_frame, width=360, height=120)
-        welcome_msg.tag_configure('entry-mid', justify='center',
-                                  font='"Comic Sans MS" 13 bold')
-        welcome_msg.pack(anchor='center', expand=True)
-        welcome_msg.insert(1.0, msg + '\n', 'entry-mid')
-        welcome_msg.insert(1.0, msg_by + '\n', 'entry-mid')
-        starter_frame.pack()
-
-    def _draw(self):
-        self.start_menu()
+    def main_program(self):
         menu_bar = tk.Menu(self.root)
         self.root['menu'] = menu_bar
         menu_file = tk.Menu(menu_bar)
-
         menu_bar.add_cascade(menu=menu_file, label='File')
-        menu_file.add_command(label='New User', command=self.new_file)
-        menu_file.add_command(label='Registered User', command=self.open_file)
-        menu_file.add_command(label='Logout', command=self.close)
-
+        menu_file.add_command(label='New', command=self.new_file)
+        menu_file.add_command(label='Open...', command=self.open_file)
+        menu_file.add_command(label='Close', command=self.close)
         settings_file = tk.Menu(menu_bar)
         menu_bar.add_cascade(menu=settings_file, label='Settings')
         settings_file.add_command(label='Add Contact',
-                                  command=self.add_contact)
-        settings_file.add_command(label='Configure Profile',
-                                  command=self.configure_server)
+                                command=self.add_contact)
+        settings_file.add_command(label='Configure DS Server',
+                                command=self.configure_server)
         self.body = Body(self.root,
-                         recipient_selected_callback=self.recipient_selected)
+                        recipient_selected_callback=self.recipient_selected)
         self.body.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
         self.footer = Footer(self.root, send_callback=self.send_message)
-        self.footer.pack(fill=tk.BOTH, side=tk.BOTTOM)
+        self.footer.pack(fill=tk.BOTH, side=tk.BOTTOM) 
 
+    def _draw(self):
+        self.starter_frame = tk.Frame(master=self.root, bg='light blue')
+        self.starter_frame.pack(side='top', fill="both", expand=True, padx=10, pady=10)
+        self.starter_frame1 = tk.Frame(master=self.root, bg='light blue')
+        self.starter_frame1.pack(side='bottom', fill='both', expand=True, padx=10, pady=10)
+        msg = '\n\nWelcome To DSP Messenger'
+        msg_by = 'Created by: Steven Deng'
+        self.welcome_msg = tk.Label(master=self.starter_frame, text=msg,
+                               font='"Comic Sans MS" 20 normal', bg='light blue')
+        self.welcome_msg1 = tk.Label(master=self.starter_frame, text=msg_by,
+                                font='"Comic Sans MS" 14 normal', bg='light blue')
+        self.welcome_msg.pack(fill='x', expand=True, anchor='s', side='top')
+        self.welcome_msg1.pack(fill='x', expand=True, anchor='n')
+        self.new_button = tk.Button(master=self.starter_frame1, text="New User",
+                               width=20, command=self.new_file, padx=20, pady=20)
+        self.new_button.pack(side=tk.LEFT, padx=30, pady=10, expand=True)
+        self.old_button = tk.Button(master=self.starter_frame1, text="Registered User",
+                               width=20, command=self.open_file, padx=20, pady=20)
+        self.old_button.pack(side=tk.RIGHT, padx=30, pady=10, expand=True)
 
 if __name__ == "__main__":
     main = tk.Tk()
     main.title("ICS 32 Distributed Social Messenger")
     main.geometry("720x480")
     main.option_add('*tearOff', False)
-    app = MainApp(main)
     main.update()
     main.minsize(main.winfo_width(), main.winfo_height())
+    app = MainApp(main)
     main.after(5000, app.check_new)
     main.mainloop()
