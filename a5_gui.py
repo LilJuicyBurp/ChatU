@@ -97,19 +97,33 @@ class Body(tk.Frame):
 
 
 class Footer(tk.Frame):
-    def __init__(self, root, send_callback=None):
+    def __init__(self, root, send_callback=None, con=None, add=None):
         tk.Frame.__init__(self, root)
         self.root = root
         self._send_callback = send_callback
+        self._config_callback = con
+        self._add_callback = add
         self._draw()
 
     def send_click(self):
         if self._send_callback is not None:
             self._send_callback()
 
+    def config(self):
+        if self._config_callback is not None:
+            self._config_callback()
+
+    def add_click(self):
+        if self._add_callback is not None:
+            self._add_callback()
+
     def _draw(self):
-        save_button = tk.Button(master=self, text="Send", width=20, command=self.send_click)
-        save_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
+        send_button = tk.Button(master=self, text="Send", width=20, command=self.send_click)
+        send_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
+        conf_button = tk.Button(master=self, text="Edit Profile", width=20, command=self.config)
+        conf_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
+        add_button = tk.Button(master=self, text="Add Contact", width=20, command=self.add_click)
+        add_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
 
         self.footer_label = tk.Label(master=self, text="Offline")
         self.footer_label.pack(fill=tk.BOTH, side=tk.LEFT, padx=5)
@@ -180,6 +194,18 @@ class MainApp(tk.Frame):
     def add_contact(self):
         name = tk.simpledialog.askstring(title = 'New Contact',
                                          prompt = 'Username of New Contact:')
+        if name == None:
+            return
+        if name == '':
+            messagebox.showerror('Missing Info!', 'Friend Not Added')
+            return
+        num = 0
+        for n in name:
+            if n != ' ':
+                num += 1
+        if num == 0:
+            messagebox.showerror('Missing Info!', 'Friend Not Added')
+            return
         self.profile.friends.append(name)
         self.profile.save_profile(self._path)
         self.body.insert_contact(name)
@@ -236,7 +262,13 @@ class MainApp(tk.Frame):
 
     def configure_server(self):
         ud = NewContactDialog(self.root, "Configure Account", self.username,
-                              self.password, self.server)
+                              self.password)
+        if ud.username is None or ud.password is None:
+                return
+        ud.server = self.server
+        if not self.info_check(ud):
+            messagebox.showerror('Missing Info!', 'Profile Not Changed')
+            return
         self.username = ud.username
         self.password = ud.password
         self.direct_messenger.password = ud.password
@@ -321,7 +353,8 @@ class MainApp(tk.Frame):
             self.body.reset_ui()
         filename = tk.filedialog.askopenfilename(filetypes=[('dsu', '*.dsu')])
         if filename == '':
-            messagebox.showerror('Uh-oh!', 'File')
+            messagebox.showerror('ERROR!', 'No File Chosen.')
+            return
         elif self.status == False:
             self.starter_frame.destroy()
             self.starter_frame1.destroy()
@@ -345,14 +378,6 @@ class MainApp(tk.Frame):
         self.check_new()
         msg = f"Online @{self.server} | {self.username}"
         self.footer.footer_label.configure(text=msg)
-        if self.status == False:
-            self.starter_frame.destroy()
-            self.starter_frame1.destroy()
-            self.welcome_msg.destroy()
-            self.welcome_msg1.destroy()
-            self.new_button.destroy()
-            self.old_button.destroy()
-        self.status = True
 
     def close(self):
         self.body.reset_ui()
@@ -366,16 +391,11 @@ class MainApp(tk.Frame):
         menu_file.add_command(label='New', command=self.new_file)
         menu_file.add_command(label='Open...', command=self.open_file)
         menu_file.add_command(label='Close', command=self.close)
-        settings_file = tk.Menu(menu_bar)
-        menu_bar.add_cascade(menu=settings_file, label='Settings')
-        settings_file.add_command(label='Add Contact',
-                                command=self.add_contact)
-        settings_file.add_command(label='Configure DS Server',
-                                command=self.configure_server)
         self.body = Body(self.root,
                         recipient_selected_callback=self.recipient_selected)
         self.body.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
-        self.footer = Footer(self.root, send_callback=self.send_message)
+        self.footer = Footer(self.root, send_callback=self.send_message,
+                             con=self.configure_server, add=self.add_contact)
         self.footer.pack(fill=tk.BOTH, side=tk.BOTTOM) 
 
     def _draw(self):
