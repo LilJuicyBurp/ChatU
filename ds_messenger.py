@@ -87,28 +87,22 @@ class DirectMessenger:
 
     def client_join(self):
         """Connects to server and returns token."""
-        try:
-            json1 = {"join": {"username": str(self.username),
-                            "password": str(self.password),
-                            "token": ""}}
-            json2 = json.dumps(json1)
-            json_returned = self.client_send(json2)
-            if json_returned.type == "error":
-                raise JoinError(json_returned.response["message"])
-            if json_returned.type == "ok":
-                return json_returned.response['token']
-        except ds_protocol.ProtocolError:
-            raise ds_protocol.ProtocolError
+        json1 = {"join": {"username": str(self.username),
+                          "password": str(self.password),
+                          "token": ""}}
+        json2 = json.dumps(json1)
+        json_returned = self.client_send(json2)
+        if json_returned.type == "error":
+            raise JoinError(json_returned.response["message"])
+        if json_returned.type == "ok":
+            return json_returned.response['token']
 
     def client_send(self, msg: json) -> None:
         """Sends info to server and returns decode server response"""
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-                client.connect((self.dsuserver, 3021))
-                client.sendall(bytes(msg, encoding='utf-8'))
-                server_return = client.recv(1000000)
-                server_return = server_return.decode("utf-8")
-                tupl = ds_protocol.directmessage(server_return)
-                return tupl
-        except ds_protocol.ProtocolError:
-            raise ds_protocol.ProtocolError
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+            client.connect((self.dsuserver, 3021))
+            client.sendall(bytes(msg, encoding='utf-8'))
+            server_return = client.recv(1000000)
+            server_return = server_return.decode("utf-8")
+            tupl = ds_protocol.directmessage(server_return)
+            return tupl

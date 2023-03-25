@@ -33,13 +33,21 @@ def test_case_2():
 
 def test_case_3():
     """Tests json.JSONDecodeError."""
-    msg = '"response": {"type": "ok", "message": "Direct message sent"}'
-    test = ds_protocol.directmessage(msg)
-    assert test.type == 'error'
+    num = 0
+    try:
+        msg = '"response": {"type": "ok", "message": "Direct message sent"}'
+        test = ds_protocol.directmessage(msg)
+    except ds_protocol.ProtocolError:
+        num += 1
+    assert num == 1
 
 
 def test_case_4():
     """Tests json.JSONDecodeError."""
-    msg = ["response", {"type": "ok", "message": "Direct message sent"}]
-    test = ds_protocol.directmessage(json.dumps(msg))
-    assert test.type == 'error'
+    num = 0
+    try:
+        msg = ["response", {"type": "ok", "message": "Direct message sent"}]
+        test = ds_protocol.directmessage(json.dumps(msg))
+    except ds_protocol.ProtocolError:
+        num += 1
+    assert num == 1

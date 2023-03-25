@@ -8,6 +8,9 @@ def test_send():
     test = ds_messenger.DirectMessenger(DSUSERVER, 'LAClippers1', 'ClipShow')
     result = test.send('We are the better LA team', 'LALakers1')
     assert result is True
+    test = ds_messenger.DirectMessenger(DSUSERVER, '', '')
+    result = test.send(None, None)
+    assert result is False
 
 
 def test_send2():
@@ -21,17 +24,23 @@ def test_new():
     """Tests retrieve new function."""
     test = ds_messenger.DirectMessenger(DSUSERVER, 'LALakers1', 'LakeShow')
     result = test.retrieve_new()
-    assert isinstance(result) == list
-    assert isinstance(result[0]) == ds_messenger.DirectMessage
+    assert isinstance(result, list) is True
+    assert isinstance(result[0], ds_messenger.DirectMessage) is True
     assert result[0].message == 'We are the better LA team'
+    test = ds_messenger.DirectMessenger(DSUSERVER, '', '')
+    result = test.retrieve_new()
+    assert result is None
 
 
 def test_all():
     """Tests retrieve all function."""
     test = ds_messenger.DirectMessenger(DSUSERVER, 'LALakers1', 'LakeShow')
     result = test.retrieve_all()
-    assert isinstance(result) == list
-    assert isinstance(result[0]) == ds_messenger.DirectMessage
+    assert isinstance(result, list) is True
+    assert isinstance(result[0], ds_messenger.DirectMessage) is True
+    test = ds_messenger.DirectMessenger(DSUSERVER, '', '')
+    result = test.retrieve_all()
+    assert result is None
 
 
 def test_join_error():
