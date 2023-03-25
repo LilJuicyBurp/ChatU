@@ -1,34 +1,44 @@
+"""Unit tests for ds_messenger"""
 import ds_messenger
-import json
-ip = '168.235.86.101'
+DSUSERVER = '168.235.86.101'
+
 
 def test_send():
-    test = ds_messenger.DirectMessenger(ip, 'LAClippers1', 'ClipShow')
+    """Tests send function"""
+    test = ds_messenger.DirectMessenger(DSUSERVER, 'LAClippers1', 'ClipShow')
     result = test.send('We are the better LA team', 'LALakers1')
-    assert result == True
+    assert result is True
+
 
 def test_send2():
-    test = ds_messenger.DirectMessenger(ip, 'LAClippers1', 'ClipShow')
+    """Tests send function unsuccesfully"""
+    test = ds_messenger.DirectMessenger(DSUSERVER, 'LAClippers1', 'ClipShow')
     result = test.send(None, None)
-    assert result == False
+    assert result is False
+
 
 def test_new():
-    test = ds_messenger.DirectMessenger(ip, 'LALakers1', 'LakeShow')
+    """Tests retrieve new function."""
+    test = ds_messenger.DirectMessenger(DSUSERVER, 'LALakers1', 'LakeShow')
     result = test.retrieve_new()
-    assert type(result) == list
-    assert type(result[0]) == ds_messenger.DirectMessage
+    assert isinstance(result) == list
+    assert isinstance(result[0]) == ds_messenger.DirectMessage
     assert result[0].message == 'We are the better LA team'
 
+
 def test_all():
-    test = ds_messenger.DirectMessenger(ip, 'LALakers1', 'LakeShow')
+    """Tests retrieve all function."""
+    test = ds_messenger.DirectMessenger(DSUSERVER, 'LALakers1', 'LakeShow')
     result = test.retrieve_all()
-    assert type(result) == list
-    assert type(result[0]) == ds_messenger.DirectMessage
+    assert isinstance(result) == list
+    assert isinstance(result[0]) == ds_messenger.DirectMessage
+
 
 def test_join_error():
+    """Tests join function"""
     num = 0
     try:
-        test = ds_messenger.DirectMessenger(ip, 'LALakers1', 'LakeSho')
+        test = ds_messenger.DirectMessenger(DSUSERVER, 'LALakers1', 'LakeSho')
         msg = test.client_join()
         print(msg)
     except ds_messenger.JoinError:
