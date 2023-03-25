@@ -290,7 +290,7 @@ class MainApp(tk.Frame):
                     self.body.insert_contact(i.recipient)
             self.profile.save_profile(self._path)
             self.recipient_selected(self.recipient)
-        main.after(5000, self.check_new)
+        self.after(5000, self.check_new)
 
     def info_check(self, user):
         try:
@@ -430,14 +430,3 @@ class MainApp(tk.Frame):
         self.footer.conf_button.config(state='normal')
         self.footer.add_button.config(state='normal')
         self.body.message_editor.config(state='normal')
-
-if __name__ == "__main__":
-    main = tk.Tk()
-    main.title("ICS 32 Distributed Social Messenger")
-    main.geometry("720x480")
-    main.option_add('*tearOff', False)
-    main.update()
-    main.minsize(main.winfo_width(), main.winfo_height())
-    app = MainApp(main)
-    main.after(5000, app.check_new)
-    main.mainloop()
