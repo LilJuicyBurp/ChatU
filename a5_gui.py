@@ -118,12 +118,12 @@ class Footer(tk.Frame):
             self._add_callback()
 
     def _draw(self):
-        send_button = tk.Button(master=self, text="Send", width=20, command=self.send_click)
-        send_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
-        conf_button = tk.Button(master=self, text="Edit Profile", width=20, command=self.config)
-        conf_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
-        add_button = tk.Button(master=self, text="Add Contact", width=20, command=self.add_click)
-        add_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
+        self.send_button = tk.Button(master=self, text="Send", width=20, command=self.send_click)
+        self.send_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
+        self.conf_button = tk.Button(master=self, text="Edit Profile", width=20, command=self.config)
+        self.conf_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
+        self.add_button = tk.Button(master=self, text="Add Contact", width=20, command=self.add_click)
+        self.add_button.pack(fill=tk.BOTH, side=tk.RIGHT, padx=5, pady=5)
 
         self.footer_label = tk.Label(master=self, text="Offline")
         self.footer_label.pack(fill=tk.BOTH, side=tk.LEFT, padx=5)
@@ -224,7 +224,7 @@ class MainApp(tk.Frame):
         return
 
     def recipient_selected(self, recipient):
-        self.body.entry_editor.config(state='normal')
+        self._enable()
         self.body.entry_editor.delete(1.0, tk.END)
         self.save_entry()
         self.recipient = recipient
@@ -257,7 +257,6 @@ class MainApp(tk.Frame):
                 self.body.entry_editor.insert(1.0, f'({stamp_time})' + '\n', 'entry-left-time')
                 self.body.insert_contact_message(i['content'].message)
         self.body.entry_editor.insert(1.0, msg_time + '\n', 'entry-mid')
-        self.body.entry_editor.config(state='disabled')
         self.body.entry_editor.see('end')
 
     def configure_server(self):
@@ -316,8 +315,6 @@ class MainApp(tk.Frame):
             self.body.reset_ui()
         filename = tk.filedialog.asksaveasfilename(filetypes=[('dsu', '*.dsu')])
         if filename == '':
-            messagebox.showerror('No File selected!',
-                                 'User Not Created')
             return
         ud = NewContactDialog(self.root, "Initiate Account",
                               '', '', '')
@@ -347,13 +344,13 @@ class MainApp(tk.Frame):
         msg = f"Online @{self.server} | {self.username}"
         self.footer.footer_label.configure(text=msg)
         self.profile.save_profile(path)
+        self._disable()
     
     def open_file(self):
         if self.status == True:
             self.body.reset_ui()
         filename = tk.filedialog.askopenfilename(filetypes=[('dsu', '*.dsu')])
         if filename == '':
-            messagebox.showerror('ERROR!', 'No File Chosen.')
             return
         elif self.status == False:
             self.starter_frame.destroy()
@@ -378,6 +375,7 @@ class MainApp(tk.Frame):
         self.check_new()
         msg = f"Online @{self.server} | {self.username}"
         self.footer.footer_label.configure(text=msg)
+        self._disable()
 
     def close(self):
         self.body.reset_ui()
@@ -388,15 +386,16 @@ class MainApp(tk.Frame):
         self.root['menu'] = menu_bar
         menu_file = tk.Menu(menu_bar)
         menu_bar.add_cascade(menu=menu_file, label='File')
-        menu_file.add_command(label='New', command=self.new_file)
-        menu_file.add_command(label='Open...', command=self.open_file)
-        menu_file.add_command(label='Close', command=self.close)
+        menu_file.add_command(label='New User', command=self.new_file)
+        menu_file.add_command(label='Open Existing User', command=self.open_file)
+        menu_file.add_command(label='Close Program', command=self.close)
         self.body = Body(self.root,
                         recipient_selected_callback=self.recipient_selected)
         self.body.pack(fill=tk.BOTH, side=tk.TOP, expand=True)
         self.footer = Footer(self.root, send_callback=self.send_message,
                              con=self.configure_server, add=self.add_contact)
-        self.footer.pack(fill=tk.BOTH, side=tk.BOTTOM) 
+        self.footer.pack(fill=tk.BOTH, side=tk.BOTTOM)
+        self._disable()
 
     def _draw(self):
         self.starter_frame = tk.Frame(master=self.root, bg='light blue')
@@ -417,6 +416,20 @@ class MainApp(tk.Frame):
         self.old_button = tk.Button(master=self.starter_frame1, text="Registered User",
                                width=20, command=self.open_file, padx=20, pady=20)
         self.old_button.pack(side=tk.RIGHT, padx=30, pady=10, expand=True)
+
+    def _disable(self):
+        self.body.entry_editor.config(state='disabled')
+        self.footer.send_button.config(state='disabled')
+        self.footer.conf_button.config(state='disabled')
+        self.footer.add_button.config(state='disabled')
+        self.body.message_editor.config(state='disabled')
+
+    def _enable(self):
+        self.body.entry_editor.config(state='normal')
+        self.footer.send_button.config(state='normal')
+        self.footer.conf_button.config(state='normal')
+        self.footer.add_button.config(state='normal')
+        self.body.message_editor.config(state='normal')
 
 if __name__ == "__main__":
     main = tk.Tk()
