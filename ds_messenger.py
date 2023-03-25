@@ -24,46 +24,53 @@ class DirectMessenger:
         self.password = password
 		
     def send(self, message:str, recipient:str) -> bool:
-        token = self.client_join()
-        msg = {"token":token, "directmessage": {"entry": message,
-                                                "recipient":recipient,
-                                                "timestamp": time.time()}}
-        json_msg = json.dumps(msg)
-        json_returned = self.client_send(json_msg)
-        if json_returned.response['message'] == 'Direct message sent':
-            return True
-        else:
+        try:
+            token = self.client_join()
+            msg = {"token":token, "directmessage": {"entry": message,
+                                                    "recipient":recipient,
+                                                    "timestamp": time.time()}}
+            json_msg = json.dumps(msg)
+            json_returned = self.client_send(json_msg)
+            if json_returned.response['message'] == 'Direct message sent':
+                return True
+            else:
+                return False
+        except JoinError:
             return False
 		
     def retrieve_new(self) -> list:
-    # must return a list of DirectMessage objects containing all new messages
-        token = self.client_join()
-        msg = {"token":token, "directmessage": 'new'}
-        json_msg = json.dumps(msg)
-        json_returned = self.client_send(json_msg)
-        return_list = []
-        for i in json_returned.response['messages']:
-            dm_obj = DirectMessage()
-            dm_obj.message = i['message']
-            dm_obj.recipient = i['from']
-            dm_obj.timestamp = i['timestamp']
-            return_list.append(dm_obj)
-        return return_list
+        try:
+            token = self.client_join()
+            msg = {"token":token, "directmessage": 'new'}
+            json_msg = json.dumps(msg)
+            json_returned = self.client_send(json_msg)
+            return_list = []
+            for i in json_returned.response['messages']:
+                dm_obj = DirectMessage()
+                dm_obj.message = i['message']
+                dm_obj.recipient = i['from']
+                dm_obj.timestamp = i['timestamp']
+                return_list.append(dm_obj)
+            return return_list
+        except JoinError:
+            return None
  
     def retrieve_all(self) -> list:
-    # must return a list of DirectMessage objects containing all messages
-        token = self.client_join()
-        msg = {"token":token, "directmessage": 'all'}
-        json_msg = json.dumps(msg)
-        json_returned = self.client_send(json_msg)
-        return_list = []
-        for i in json_returned.response['messages']:
-            dm_obj = DirectMessage()
-            dm_obj.message = i['message']
-            dm_obj.recipient = i['from']
-            dm_obj.timestamp = i['timestamp']
-            return_list.append(dm_obj)
-        return return_list
+        try:
+            token = self.client_join()
+            msg = {"token":token, "directmessage": 'all'}
+            json_msg = json.dumps(msg)
+            json_returned = self.client_send(json_msg)
+            return_list = []
+            for i in json_returned.response['messages']:
+                dm_obj = DirectMessage()
+                dm_obj.message = i['message']
+                dm_obj.recipient = i['from']
+                dm_obj.timestamp = i['timestamp']
+                return_list.append(dm_obj)
+            return return_list
+        except JoinError:
+            return None
 
     def client_join(self):
         json1 = {"join": {"username": str(self.username), "password": str(self.password),

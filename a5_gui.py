@@ -163,7 +163,6 @@ class MainApp(tk.Frame):
         self._draw()
 
     def send_message(self):
-        # You must implement this!
         msg = self.body.message_editor.get('1.0', 'end').rstrip()
         self.body.message_editor.delete(1.0, tk.END)
         recp = self.recipient
@@ -171,6 +170,10 @@ class MainApp(tk.Frame):
                           'timestamp': time.time()}
         self.profile.sent.append(direct_message)
         boo = self.direct_messenger.send(msg, recp)
+        if boo == False:
+            messagebox.showerror('ERROR!',
+                                 'Message Not Sent')
+            return
         self.profile.save_profile(self._path)
         self.recipient_selected(self.recipient)
 
@@ -234,12 +237,12 @@ class MainApp(tk.Frame):
     def configure_server(self):
         ud = NewContactDialog(self.root, "Configure Account", self.username,
                               self.password, self.server)
-        self.username = ud.user
-        self.password = ud.pwd
-        self.direct_messenger.password = ud.pwd
-        self.direct_messenger.username = ud.user
-        self.profile.password = ud.pwd
-        self.profile.username = ud.user
+        self.username = ud.username
+        self.password = ud.password
+        self.direct_messenger.password = ud.password
+        self.direct_messenger.username = ud.username
+        self.profile.password = ud.password
+        self.profile.username = ud.username
         self.profile.save_profile(self._path)
 
     def check_new(self):
@@ -251,6 +254,9 @@ class MainApp(tk.Frame):
                 direct_message = {'message': i.message, 'recipient': i.recipient,
                             'timestamp': i.timestamp}
                 self.profile.messages.append(direct_message)
+                if i.recipient not in self.profile.friends:
+                    self.profile.friends.append(i.recipient)
+                    self.body.insert_contact(i.recipient)
             self.profile.save_profile(self._path)
             self.recipient_selected(self.recipient)
         main.after(5000, self.check_new)
