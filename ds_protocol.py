@@ -5,6 +5,11 @@
 import json
 from collections import namedtuple
 
+
+class ProtocolError(Exception):
+    """Module specific error"""
+
+
 DataTuple = namedtuple('DataTuple', ['response', 'type'])
 
 
@@ -15,9 +20,7 @@ def directmessage(json_msg: str) -> DataTuple:
         msg = json_obj['response']
         typ = json_obj['response']['type']
     except json.JSONDecodeError:
-        print("Json cannot be decoded.")
-        return DataTuple({'message': 'returned info can\'t be read'}, 'error')
+        raise ProtocolError
     except TypeError:
-        print("Json cannot be decoded.")
-        return DataTuple({'message': 'returned info can\'t be read'}, 'error')
+        raise ProtocolError
     return DataTuple(msg, typ)
