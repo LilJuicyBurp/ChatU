@@ -1,3 +1,4 @@
+"""Module that handles communication with DPS server."""
 # Steven Deng
 # sdeng5@uci.edu
 # 47704456
@@ -6,10 +7,13 @@ import time
 import socket
 import ds_protocol
 
+
 class JoinError(Exception):
     """Module exception for when connection fails."""
 
+
 class DirectMessage:
+    """Stores info about messages"""
     def __init__(self):
         self.recipient = None
         self.message = None
@@ -17,31 +21,33 @@ class DirectMessage:
 
 
 class DirectMessenger:
+    """Contains Server interaction methods"""
     def __init__(self, dsuserver=None, username=None, password=None):
         self.token = None
         self.dsuserver = dsuserver
         self.username = username
         self.password = password
-		
-    def send(self, message:str, recipient:str) -> bool:
+
+    def send(self, message: str, recipient: str) -> bool:
+        """Sends message to contact and returns the outcome."""
         try:
             token = self.client_join()
-            msg = {"token":token, "directmessage": {"entry": message,
-                                                    "recipient":recipient,
-                                                    "timestamp": time.time()}}
+            msg = {"token": token, "directmessage": {"entry": message,
+                                                     "recipient": recipient,
+                                                     "timestamp": time.time()}}
             json_msg = json.dumps(msg)
             json_returned = self.client_send(json_msg)
             if json_returned.response['message'] == 'Direct message sent':
                 return True
-            else:
-                return False
+            return False
         except JoinError:
             return False
-		
+
     def retrieve_new(self) -> list:
+        """Retrieve new messages and returns a list of DM objects."""
         try:
             token = self.client_join()
-            msg = {"token":token, "directmessage": 'new'}
+            msg = {"token": token, "directmessage": 'new'}
             json_msg = json.dumps(msg)
             json_returned = self.client_send(json_msg)
             return_list = []
@@ -54,11 +60,12 @@ class DirectMessenger:
             return return_list
         except JoinError:
             return None
- 
+
     def retrieve_all(self) -> list:
+        """Retrieve all messages and returns a list of DM objects."""
         try:
             token = self.client_join()
-            msg = {"token":token, "directmessage": 'all'}
+            msg = {"token": token, "directmessage": 'all'}
             json_msg = json.dumps(msg)
             json_returned = self.client_send(json_msg)
             return_list = []
@@ -73,16 +80,19 @@ class DirectMessenger:
             return None
 
     def client_join(self):
-        json1 = {"join": {"username": str(self.username), "password": str(self.password),
-                        "token": ""}}
+        """Connects to server and returns token."""
+        json1 = {"join": {"username": str(self.username),
+                          "password": str(self.password),
+                          "token": ""}}
         json2 = json.dumps(json1)
         json_returned = self.client_send(json2)
         if json_returned.type == "error":
             raise JoinError(json_returned.response["message"])
-        elif json_returned.type == "ok":
+        if json_returned.type == "ok":
             return json_returned.response['token']
-        
+
     def client_send(self, msg: json) -> None:
+        """Sends info to server and returns decode server response"""
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect((self.dsuserver, 3021))
             client.sendall(bytes(msg, encoding='utf-8'))

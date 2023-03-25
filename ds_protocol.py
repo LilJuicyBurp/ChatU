@@ -1,3 +1,4 @@
+"""Protcol for communicating with DSP server"""
 # Steven Deng
 # sdeng5@uci.edu
 # 47704456
@@ -6,15 +7,17 @@ from collections import namedtuple
 
 DataTuple = namedtuple('DataTuple', ['response', 'type'])
 
+
 def directmessage(json_msg: str) -> DataTuple:
+    """Deciphers DSP server return."""
     try:
         json_obj = json.loads(json_msg)
         msg = json_obj['response']
-        type = json_obj['response']['type']
+        typ = json_obj['response']['type']
     except json.JSONDecodeError:
         print("Json cannot be decoded.")
         return DataTuple({'message': 'returned info can\'t be read'}, 'error')
     except TypeError:
         print("Json cannot be decoded.")
         return DataTuple({'message': 'returned info can\'t be read'}, 'error')
-    return DataTuple(msg, type)
+    return DataTuple(msg, typ)

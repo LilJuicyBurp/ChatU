@@ -1,3 +1,4 @@
+"""Main A5 module."""
 # Steven Deng
 # sdeng5@uci.edu
 # 47704456
@@ -6,6 +7,7 @@ import a5_gui
 
 
 def main():
+    """Main function for A%"""
     messenger = tk.Tk()
     messenger.title("ICS 32 Distributed Social Messenger")
     messenger.geometry("720x480")
@@ -15,6 +17,7 @@ def main():
     app = a5_gui.MainApp(messenger)
     messenger.after(5000, app.check_new)
     messenger.mainloop()
+
 
 if __name__ == '__main__':
     main()
