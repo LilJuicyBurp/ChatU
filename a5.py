@@ -9,7 +9,7 @@ import a5_gui
 def main():
     """Main function for A%"""
     messenger = tk.Tk()
-    messenger.title("ICS 32 Distributed Social Messenger")
+    messenger.title("ChatU")
     messenger.geometry("720x480")
     messenger.option_add('*tearOff', False)
     messenger.update()

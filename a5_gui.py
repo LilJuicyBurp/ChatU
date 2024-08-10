@@ -462,7 +462,7 @@ class MainApp(tk.Frame):
         self.starter_frame1 = tk.Frame(master=self.root, bg='light blue')
         self.starter_frame1.pack(side='bottom', fill='both',
                                  expand=True, padx=10, pady=10)
-        msg = '\n\nWelcome To DSP Messenger'
+        msg = '\n\nChatU'
         msg_by = 'Created by: Steven Deng'
         self.welcome_msg = tk.Label(master=self.starter_frame, text=msg,
                                     font='"Comic Sans MS" 20 normal',
